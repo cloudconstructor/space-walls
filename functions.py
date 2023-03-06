@@ -112,16 +112,19 @@ class Stage:
         else:
             wall_pass.play(0)
 
+    def returnDistance(self):
+        return self.distance
     
     def renderStats(self): #output text
         global hopsPassed , hits, hero_health, gameLevel
 
-        #distance    
-        font1 = pygame.font.SysFont('impact', 24)
-        text1 = font1.render('Distance remaining: '+str(self.distance)+ 'miles', True, green)
-        textRect1 = text1.get_rect()
-        textRect1.center = (screen_width // 2, screen_height -20)
-        screen.blit(text1, textRect1)
+        #distance  
+        if self.distance > 0:
+            font1 = pygame.font.SysFont('impact', 24)
+            text1 = font1.render('Distance remaining: '+str(self.distance)+ 'miles', True, green)
+            textRect1 = text1.get_rect()
+            textRect1.center = (screen_width // 2, screen_height -20)
+            screen.blit(text1, textRect1)
         
         #health    
         font2 = pygame.font.SysFont('impact', 36)
@@ -278,7 +281,7 @@ def renderMessage(message):
 
 def showCredLine():
     font = pygame.font.SysFont('impact', 18)
-    text = font.render("2023 by Buggy Games v0.7"  , True, red)
+    text = font.render("2023 by Buggy Games v1.0"  , True, red) #version
     textRect = text.get_rect()
     textRect.center = (screen_width // 2, screen_height -20)
     screen.blit(text, textRect)
@@ -425,9 +428,10 @@ def roll_Credits():
             "Music Composed and played by George Droulias",
             "",
             "TODO list:",
-            "1.Make a better collition and keyb debounce algorithm",
-            "2.Make an endgame screen",
-            "3.turn this to exe file",
+            "1.Make a better collition algorithm",
+            "2.keyb debounce could be better",
+            "3.could have difficulty settings",
+            "4.turn this to exe file",
             )
     h = 100
     for t in text:

@@ -16,7 +16,7 @@ red = (255, 0, 0)
 orange = (255, 128, 0)
 yellow = (255, 255, 0)
 gray = (125, 125, 125)
-gameMapSize = 500
+gameMapSize = 5
 
 #create game
 screen = pygame.display.set_mode(size)
@@ -28,26 +28,11 @@ herostart = st.getfirstAlt()
 h = fn.Hero(herostart)
 intm = 0
 
-#game music and misc sfx 
-game_music_list = (
-    "sound/music/space_walls_soundtrack_track1.ogg",
-    "sound/music/space_walls_soundtrack_track2.ogg",
-    "sound/music/space_walls_soundtrack_track3.ogg",
-    "sound/music/space_walls_soundtrack_track4.ogg",
-    "sound/music/space_walls_soundtrack_track5.ogg",
-    "sound/music/space_walls_soundtrack_track6.ogg",
-    "sound/music/space_walls_soundtrack_track7.ogg",
-    "sound/music/space_walls_soundtrack_track8.ogg",
-    "sound/music/space_walls_soundtrack_track9.ogg",
-)
-game_music_vol = (
-            0.6, 0,5, 0,7,
-            0.6, 0,5, 0,7,
-            0.6, 0,5, 0,7,
-                  )
 intro_music = pygame.mixer.Sound("sound/music/space_walls_soundtrack_intro.ogg")
+game_music = pygame.mixer.Sound("sound/music/game_music.ogg")
 explosion = pygame.mixer.Sound("sound/sfx/explosion.ogg")
 pygame.mixer.Sound.set_volume(intro_music, 0.7)
+pygame.mixer.Sound.set_volume(game_music, 0.7)
 pygame.mixer.Sound.set_volume(explosion, 0.6)
 
 #auxiliary vars
@@ -62,23 +47,6 @@ state = 0
 gameLevel = 1
 counter = 0
 
-
-#in game music player
-def play_music(game_music_list, game_music_vol, musicplay):
-    if musicplay == 1:
-        pygame.mixer.music.load(game_music_list[song_index])
-        pygame.mixer.music.set_volume(game_music_vol[song_index])
-        pygame.mixer.music.play()
-        for num, song in enumerate(game_music_list):
-            if num == song_index:
-                continue # already playing
-            pygame.mixer.music.queue(song)   
-
-    elif musicplay == 0:
-        pygame.mixer.music.fadeout(600)
-
-
-
 #death message and some value reseting
 def resetGame():
     global x, state, st, space, h, explosion, song_index
@@ -88,6 +56,32 @@ def resetGame():
     explosion.play(0)
     fn.refreshStage()
     pygame.time.wait(3000)
+
+    del(st)
+    del(space)
+    space = fn.space(200, 1)
+    space.generateSpace()
+    st = fn.Stage(500)
+    st.setBlockCoordinates()
+    herostart = st.getfirstAlt()
+
+    h = fn.Hero(herostart)
+    fn.resetGameVals()
+    x=0
+    state = 0
+    song_index = 0
+
+def endGame():
+    global x, state, st, space, h, explosion, song_index
+
+    fn.mainLogo(150)
+    fn.renderMessage2("YOU'VE MADE IT!",32, yellow, screen_width //2, 250)
+    fn.renderMessage2("YOU HAVE ESCAPED TO HYPERSPACE AND TO FREEDOM!",24, red, screen_width //2, 280)
+    fn.renderMessage2("HOPE YOU HAD AS GREAT TIME PLAYING THE GAME AS I HAD MAKING IT! ",24, red, screen_width //2, 310)
+    fn.renderMessage2("SEE YOU AGAIN IN SOME OTHER ADVENTURE...",24, red, screen_width //2, 340)
+
+    fn.refreshStage()
+    pygame.time.wait(5000)
 
     del(st)
     del(space)
@@ -137,7 +131,7 @@ if __name__ == "__main__":
 
             if game_music_playing == 0:
                 if sound_on == 1:
-                    play_music(game_music_list, game_music_vol, 1)
+                    game_music.play(-1)
                 game_music_playing = 1
 
             #check health
@@ -146,8 +140,12 @@ if __name__ == "__main__":
                 fn.saveHighScore()
                 state = 666
                 if sound_on == 1:
-                    play_music(game_music_list, game_music_vol, 0)
+                    game_music.fadeout(700)
                 game_music_playing = 0
+
+
+            
+
 
             space.roll_spaceFx()
             st.renderStage()
@@ -162,7 +160,18 @@ if __name__ == "__main__":
                 fn.renderMessage2("ARE FORMING IN YOUR SECTOR. DONT GET TRAPPED INSIDE! ",24, red, screen_width //2, 260)
                 fn.renderMessage2("FLY CAREFULLY THROUGH THE WALLS AND ESCAPE TO HYPERSPACE... ",24, red, screen_width //2, 290)
 
-            # st.scrollStage() #comment this for degubing
+
+            #check finish
+            distance = st.returnDistance()
+            if(distance <= 0):
+                fn.saveHighScore()
+                state = 667
+                if sound_on == 1:
+                    game_music.fadeout(700)
+                game_music_playing = 0
+
+
+            st.scrollStage() #comment this for degubing
             fn.gameDiff()
             fn.refreshStage()
 
@@ -205,4 +214,7 @@ if __name__ == "__main__":
                 state = 0
     
         elif state == 666: # Failure Screen
-            resetGame()            
+            resetGame()   
+
+        elif state == 667: # Failure Screen
+            endGame()          
