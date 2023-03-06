@@ -426,12 +426,12 @@ def roll_Credits():
     text = (
             "Coded in Python 3.9 and pygame 2.1.3 by George Droulias",
             "Music Composed and played by George Droulias",
+            "Hope you have as good time playing this as i had making it...",
             "",
             "TODO list:",
             "1.Make a better collition algorithm",
-            "2.keyb debounce could be better",
-            "3.could have difficulty settings",
-            "4.turn this to exe file",
+            "2.Keyboard debounce could be better",
+            "3.Could have difficulty settings",
             )
     h = 100
     for t in text:
