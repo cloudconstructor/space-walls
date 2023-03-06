@@ -6,6 +6,8 @@ pygame.init()
 
 #set local constants
 size = screen_width, screen_height = 800, 600
+
+
 black = 0, 0, 0
 black = 0, 0, 0
 white = (255, 255, 255)
