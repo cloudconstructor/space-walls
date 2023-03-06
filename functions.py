@@ -2,8 +2,6 @@ import pygame, random, sys
 
 game_title = "SPACE WALLS"
 
-
-
 pygame.init()
 pygame.display.set_caption(game_title)
 clock = pygame.time.Clock()
@@ -12,10 +10,10 @@ size = screen_width, screen_height = 800, 600
 screen = pygame.display.set_mode(size)
 framerate = 50
 
-wall_crush = pygame.mixer.Sound("wallcrash.wav")
-wall_pass = pygame.mixer.Sound("wallpass.wav")
+wall_crush = pygame.mixer.Sound("sound/sfx/wallcrash.ogg")
+wall_pass = pygame.mixer.Sound("sound/sfx/wallpass.ogg")
 pygame.mixer.Sound.set_volume(wall_crush, 0.7)
-pygame.mixer.Sound.set_volume(wall_pass, 0.5)
+pygame.mixer.Sound.set_volume(wall_pass, 0.4)
 
 logo_height = screen_height // 2
 lf = 0
@@ -47,8 +45,6 @@ star_speed = 1
 star_density = 200
 hero_health = 100
 c = 0
-
-
 
 class Stage:
     def __init__(self,mapSize):
@@ -416,6 +412,9 @@ def menuScreen():
         mainMenu(300, menu_selection)
         menuKeys()
         showCredLine()
+        score = loadHighScore()
+        renderMessage2("HIGHEST WALL COUNT:",24, red, screen_width //2, 200)
+        renderMessage2(score,42, yellow, screen_width //2, 240)
 
 def roll_Credits():
     global menu_final_selection, menu_selection
@@ -427,12 +426,9 @@ def roll_Credits():
             "",
             "TODO list:",
             "1.Make a better collition and keyb debounce algorithm",
-            "2.get the game stats to the death screen",
-            "3.Make an endgame screen",
-            "4.Optimize and reduce code",
-            "5.turn this to exe file",
+            "2.Make an endgame screen",
+            "3.turn this to exe file",
             )
-    
     h = 100
     for t in text:
         renderMessage2(t, 24, red, screen_width //2, h)
@@ -456,3 +452,19 @@ def escapeCreds():
         return True
     
 
+def saveHighScore():
+    global hopsPassed
+
+    old = open('include/score.txt', "r")
+    oldscore = old.readline().strip()
+    old_score = int(oldscore)
+
+    if hopsPassed > old_score:
+        f = open("include/score.txt", "w")
+        f.write(str(hopsPassed))
+        f.close()
+
+def loadHighScore():
+    d = open('include/score.txt', "r")
+    score = d.readline()
+    return score
