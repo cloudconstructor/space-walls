@@ -16,7 +16,7 @@ red = (255, 0, 0)
 orange = (255, 128, 0)
 yellow = (255, 255, 0)
 gray = (125, 125, 125)
-gameMapSize = 5
+gameMapSize = 500
 
 #create game
 screen = pygame.display.set_mode(size)

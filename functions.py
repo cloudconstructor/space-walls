@@ -349,7 +349,7 @@ def mainMenu(height, selc):
     text = font.render("START" , True, c1, black)
     text2 = font.render("QUIT"  , True, c2, black)
     text3 = font.render("CREDS"  , True, c3, black)
-    text4 = font.render("SOUND"  , True, c4, black)
+    text4 = font.render("MUSIC"  , True, c4, black)
 
     height2 = height + 40
     height3 = height2 + 40
@@ -444,8 +444,8 @@ def showSettings(sound_on):
     menu_final_selection = 0
     #array contents
     text = (
-            "SOUND OFF",
-            "SOUND ON",
+            "MUSIC OFF",
+            "MUSIC ON",
             )
     renderMessage2(text[sound_on], 24, red, screen_width //2, screen_height // 2)
      
