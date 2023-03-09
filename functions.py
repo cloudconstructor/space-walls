@@ -1,14 +1,15 @@
-import pygame, random, sys
+import pygame, random, os, json
 
 game_title = "SPACE WALLS"
 
+#set dispay parameters
 pygame.init()
-pygame.display.set_caption(game_title)
-clock = pygame.time.Clock()
 
-size = screen_width, screen_height = 800, 600
-screen = pygame.display.set_mode(size)
-framerate = 50
+size = screen_width, screen_height = 1440, 900
+
+flags = pygame.SCALED | pygame.RESIZABLE
+screen = pygame.display.set_mode(size, flags)
+clock = pygame.time.Clock()
 
 wall_crush = pygame.mixer.Sound("sound/sfx/wallcrash.ogg")
 wall_pass = pygame.mixer.Sound("sound/sfx/wallpass.ogg")
@@ -31,6 +32,7 @@ orange = (255, 128, 0)
 yellow = (255, 255, 0)
 gray = (125, 125, 125)
 
+framerate = 50
 barWidth = 10
 barDistance = 200
 scroll_speed = 2
@@ -121,7 +123,7 @@ class Stage:
         #distance  
         if self.distance > 0:
             font1 = pygame.font.SysFont('impact', 24)
-            text1 = font1.render('Distance remaining: '+str(self.distance)+ 'miles', True, green)
+            text1 = font1.render('Distance remaining: '+str(self.distance)+ 'Km', True, green)
             textRect1 = text1.get_rect()
             textRect1.center = (screen_width // 2, screen_height -20)
             screen.blit(text1, textRect1)
@@ -230,7 +232,7 @@ class Hero:
         global hero_health
         return hero_health
 
-    
+
 class space:
     def __init__(self, star_density, star_speed):
         self.density = int(star_density)
@@ -253,8 +255,9 @@ class space:
         screen.blit(screen, (0,0))
 
 
+
 def resetGameVals():
-    global hero_health, barDistance, scroll_speed, gapsize, heroPosition, hits, hopsPassed, star_speed, c, lf, menu_selection, menu_final_selection, debounce,framerate
+    global hero_health, barDistance, scroll_speed, gapsize, heroPosition, hits, hopsPassed, star_speed, c, lf, menu_selection, menu_final_selection, debounce,framerate, oldHopsPassed
     
     barDistance = 200
     scroll_speed = 2
@@ -262,7 +265,7 @@ def resetGameVals():
     heroPosition = 0, 0 ,0
     hits = 0
     hopsPassed = 0
-    # oldHopsPassed = 0
+    oldHopsPassed = 0
     star_speed = 1
     hero_health = 100
     c = 0
@@ -272,33 +275,6 @@ def resetGameVals():
     debounce = 0
     framerate = 50
 
-def renderMessage(message):
-    font = pygame.font.SysFont('impact', 42)
-    text = font.render(message  , True, red)
-    textRect = text.get_rect()
-    textRect.center = (screen_width // 2, screen_height // 2)
-    screen.blit(text, textRect)
-
-def showCredLine():
-    font = pygame.font.SysFont('impact', 18)
-    text = font.render("2023 by Buggy Games v1.0"  , True, red) #version
-    textRect = text.get_rect()
-    textRect.center = (screen_width // 2, screen_height -20)
-    screen.blit(text, textRect)
-
-def renderMessage2(message, fontsize, color, x, y):
-    font = pygame.font.SysFont('impact', fontsize)
-    text = font.render(message  , True, color)
-    textRect = text.get_rect()
-    textRect.center = (x, y)
-    screen.blit(text, textRect)
-
-def refreshStage():
-    pygame.display.flip()
-    clock.tick(framerate) #fps
-    pygame.display.update()
-
-      
 def gameDiff():
         global hopsPassed, oldHopsPassed,  gameLevel, framerate, levelUpwalls
         deltaHops = hopsPassed - oldHopsPassed  
@@ -307,21 +283,25 @@ def gameDiff():
             framerate +=10
             gameLevel +=1
 
-def mainLogo(height):
-    global game_title
-    font = pygame.font.SysFont('impact', 82, True, True)
-    text = font.render(game_title  , True, blue2)
+def refreshStage():
+    pygame.display.flip()
+    clock.tick(framerate) #fps
+    pygame.display.update()
+
+
+def renderMessage(message, fontsize, color, x, y, bold = False, italic = False, font = 'impact', background=""):
+    font = pygame.font.SysFont(font, fontsize, bold, italic)
+    if background != "":
+        text = font.render(message  , True,  color, background)
+    else:
+        text = font.render(message  , True,  color)
     textRect = text.get_rect()
-    textRect.center = (screen_width // 2, height)
+    textRect.center = (x, y)
     screen.blit(text, textRect)
 
-    font2 = pygame.font.SysFont('impact', 79, False, True)
-    text2 = font2.render(game_title  , True, blue)
-    textRect2 = text2.get_rect()
-    textRect2.center = (screen_width // 2, height)
-    screen.blit(text2, textRect2)
 
-def mainMenu(height, selc):
+# MAIN MENU -----------------------------------------------------------------------------------------
+def mainMenu(height, selc):# ok einai ili8ios tropos alla ok ...
     sc = red
     uc = green
     if selc == 1:
@@ -329,43 +309,58 @@ def mainMenu(height, selc):
         c2 = uc
         c3 = uc
         c4 = uc
+        c5 = uc
     elif selc == 2: #quit
-        c2 = sc
         c1 = uc
+        c2 = sc
         c3 = uc
         c4 = uc
+        c5 = uc
     elif selc == 3: #creds
         c1 = uc
         c2 = uc
         c3 = sc
         c4 = uc
+        c5 = uc
     elif selc == 4: #sound
         c1 = uc
         c2 = uc
         c3 = uc
         c4 = sc
+        c5 = uc
+    elif selc == 5: #sound
+        c1 = uc
+        c2 = uc
+        c3 = uc
+        c4 = uc
+        c5 = sc
 
     font = pygame.font.SysFont('impact', 36)
     text = font.render("START" , True, c1, black)
     text2 = font.render("QUIT"  , True, c2, black)
     text3 = font.render("CREDS"  , True, c3, black)
     text4 = font.render("MUSIC"  , True, c4, black)
+    text5 = font.render("FULLSCREEN"  , True, c5, black)
 
     height2 = height + 40
     height3 = height2 + 40
     height4 = height3 + 40
+    height5 = height4 + 40
     textRect = text.get_rect()
     textRect2 = text2.get_rect()
     textRect3 = text3.get_rect()
     textRect4 = text4.get_rect()
+    textRect5 = text5.get_rect()
     textRect.center = (screen_width // 2, height)
     textRect2.center = (screen_width // 2, height2)
     textRect3.center = (screen_width // 2, height3)
     textRect4.center = (screen_width // 2, height4)
+    textRect5.center = (screen_width // 2, height5)
     screen.blit(text, textRect)
     screen.blit(text2, textRect2)
     screen.blit(text3, textRect3)
     screen.blit(text4, textRect4)
+    screen.blit(text5, textRect5)
 
 def menuKeys():
     global menu_selection, debounce, menu_final_selection
@@ -383,13 +378,13 @@ def menuKeys():
     if key[pygame.K_DOWN] or key[pygame.K_s]:
         if debounce == 8:
             menu_final_selection = 0
-            if menu_selection < 4:
+            if menu_selection < 5:
                 menu_selection +=1
             debounce = 0
         else:
             debounce += 1
 
-    if key[pygame.K_RETURN]:
+    if key[pygame.K_RETURN] or key[pygame.K_SPACE]:
         if debounce == 8:
             menu_final_selection = menu_selection
             debounce = 0
@@ -416,16 +411,77 @@ def menuScreen():
         menuKeys()
         showCredLine()
         score = loadHighScore()
-        renderMessage2("HIGHEST WALL COUNT:",24, red, screen_width //2, 200)
-        renderMessage2(score,42, yellow, screen_width //2, 240)
+        renderMessage("HIGHEST WALL COUNT:",24, red, screen_width //2, 200)
+        renderMessage(score,42, yellow, screen_width //2, 240)
+
+def showSoundSettings(sound_on):
+    global menu_final_selection, menu_selection
+    menu_final_selection = 0
+    #array contents
+    text = (
+            "MUSIC OFF",
+            "MUSIC ON",
+            )
+    renderMessage(text[sound_on], 24, red, screen_width //2, screen_height // 2)
+
+def showScreenSettings(full_screen):
+    global menu_final_selection, menu_selection
+    menu_final_selection = 0
+    #array contents
+    text = (
+            "FULL SCREEN OFF",
+            "FULL SCREEN ON",
+            )
+    renderMessage(text[full_screen], 24, red, screen_width //2, screen_height // 2)
+    
+def escapeCreds():
+    renderMessage("Press [ESC] for Menu", 20, yellow, screen_width //2, screen_height - 20)
+    key = pygame.key.get_pressed()
+    if key[pygame.K_ESCAPE]:
+        return True
+    
+def showPauseMenu():
+    mainLogo(150)
+    renderMessage("GAME PAUSED",40, red, screen_width //2, 230, False, False, "impact", black)
+    renderMessage("[ESC] TO RESUME GAME",32, yellow , screen_width //2, 280, False, False, "impact", black)
+    renderMessage("[E] TO EXIT",32, yellow, screen_width //2, 320, False, False, "impact", black)
+
+    key = pygame.key.get_pressed()
+    if key[pygame.K_e]:
+        return True     
+    pygame.display.flip()
+    clock.tick(framerate) #fps
+    pygame.display.update()
+
+# MESSAGES AND TEXT --------------------------------------------------------------------------------
+def showCredLine():
+    font = pygame.font.SysFont('impact', 20)
+    text = font.render("2023 by Buggy Games v1.5"  , True, red) #version
+    textRect = text.get_rect()
+    textRect.center = (screen_width // 2, screen_height -20)
+    screen.blit(text, textRect)
+
+def mainLogo(height):
+    global game_title
+    font = pygame.font.SysFont('impact', 82, True, True)
+    text = font.render(game_title  , True, blue2)
+    textRect = text.get_rect()
+    textRect.center = (screen_width // 2, height)
+    screen.blit(text, textRect)
+
+    font2 = pygame.font.SysFont('impact', 79, False, True)
+    text2 = font2.render(game_title  , True, blue)
+    textRect2 = text2.get_rect()
+    textRect2.center = (screen_width // 2, height)
+    screen.blit(text2, textRect2)
 
 def roll_Credits():
     global menu_final_selection, menu_selection
     menu_final_selection = 0
     
     text = (
-            "Coded in Python 3.9 and pygame 2.1.3 by George Droulias",
-            "Music Composed and played by George Droulias",
+            "Coded in Python 3.9 and pygame 2.1.3",
+            "Coding and Music by George Droulias",
             "Hope you have as good time playing this as i had making it...",
             "",
             "TODO list:",
@@ -435,27 +491,35 @@ def roll_Credits():
             )
     h = 100
     for t in text:
-        renderMessage2(t, 24, red, screen_width //2, h)
+        renderMessage(t, 24, red, screen_width //2, h)
         h +=30  
 
+# endgame screen
+def endGame():
+    mainLogo(150)
+    renderMessage("YOU'VE MADE IT!",32, yellow, screen_width //2, 250)
+    renderMessage("YOU HAVE ESCAPED TO HYPERSPACE AND TO FREEDOM!",24, red, screen_width //2, 280)
+    renderMessage("HOPE YOU HAD AS GREAT TIME PLAYING THE GAME AS I HAD MAKING IT! ",24, red, screen_width //2, 310)
+    renderMessage("SEE YOU AGAIN IN SOME OTHER ADVENTURE...",24, red, screen_width //2, 340)
+    refreshStage()
 
-def showSettings(sound_on):
-    global menu_final_selection, menu_selection
-    menu_final_selection = 0
-    #array contents
-    text = (
-            "MUSIC OFF",
-            "MUSIC ON",
-            )
-    renderMessage2(text[sound_on], 24, red, screen_width //2, screen_height // 2)
-     
-def escapeCreds():
-    renderMessage2("Press [ESC] for Menu", 18, yellow, screen_width //2, screen_height - 20)
-    key = pygame.key.get_pressed()
-    if key[pygame.K_ESCAPE]:
-        return True
-    
+# death message and some 
+def looseGame():
+    explosion = pygame.mixer.Sound("sound/sfx/explosion.ogg")
+    pygame.mixer.Sound.set_volume(explosion, 0.6)
+    renderMessage("YOU ARE FUCKIN DEAD!",42, red, screen_width //2, 200)
+    renderMessage("BETTER LUCK NEXT TIME..",24, red, screen_width //2, 250)
+    explosion.play(0)
+    refreshStage()
 
+def gameStory():
+    renderMessage("WARNING!",32, yellow, screen_width //2, 200)
+    renderMessage("MYSTERIOUS ALIEN STRUCTURES KNOWN AS \"SPACE WALLS\"",24, red, screen_width //2, 230)
+    renderMessage("ARE FORMING IN YOUR SECTOR. DONT GET TRAPPED INSIDE! ",24, red, screen_width //2, 260)
+    renderMessage("FLY CAREFULLY THROUGH THE WALLS AND ESCAPE TO HYPERSPACE... ",24, red, screen_width //2, 290)
+
+
+# FILE OPERATIONS ------------------------------------------------------------------------------------------
 def saveHighScore():
     global hopsPassed
 
@@ -472,3 +536,8 @@ def loadHighScore():
     d = open('include/score.txt', "r")
     score = d.readline()
     return score
+
+def loadScreenSettings():
+    with open('include/screen_settings.json', "r") as file:
+        jsdata = json.loads(file.read())
+    return (jsdata)

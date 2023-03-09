@@ -1,13 +1,31 @@
-import pygame, sys
+import pygame, sys, os
+from pygame.locals import *
+from time import sleep
 import functions as fn
 
 
+game_title = "SPACE WALLS"
+
+#set dispay parameters
+screen_settings = fn.loadScreenSettings()
+full_screen = screen_settings["full_screen"]
+screen_width = screen_settings["screen_width"]
+screen_height = screen_settings["screen_height"]
+
+
+os.environ['SDL_VIDEO_CENTERED'] = '1'
 pygame.init()
+pygame.display.set_caption(game_title)
+
+size = screen_width, screen_height
+if full_screen == 1:
+    flags = flags = pygame.SCALED | pygame.RESIZABLE | pygame.FULLSCREEN
+else:
+    flags = pygame.SCALED | pygame.RESIZABLE 
+screen = pygame.display.set_mode(size, flags)
+clock = pygame.time.Clock()
 
 #set local constants
-size = screen_width, screen_height = 800, 600
-
-
 black = 0, 0, 0
 black = 0, 0, 0
 white = (255, 255, 255)
@@ -18,10 +36,10 @@ red = (255, 0, 0)
 orange = (255, 128, 0)
 yellow = (255, 255, 0)
 gray = (125, 125, 125)
-gameMapSize = 500
+gameMapSize = 1000
+
 
 #create game
-screen = pygame.display.set_mode(size)
 space = fn.space(200, 1)
 space.generateSpace()
 st = fn.Stage(gameMapSize)
@@ -32,85 +50,73 @@ intm = 0
 
 intro_music = pygame.mixer.Sound("sound/music/space_walls_soundtrack_intro.ogg")
 game_music = pygame.mixer.Sound("sound/music/game_music.ogg")
-explosion = pygame.mixer.Sound("sound/sfx/explosion.ogg")
 pygame.mixer.Sound.set_volume(intro_music, 0.7)
 pygame.mixer.Sound.set_volume(game_music, 0.7)
-pygame.mixer.Sound.set_volume(explosion, 0.6)
 
 #auxiliary vars
 intro_music_playing = 0
 game_music_playing = 0
 sound_on = 1
-game_paused = 0
 song_index = 0
 soundset = 0
 x = 0
 state = 0
 gameLevel = 1
 counter = 0
+gamePaused = 0
+screenSet = 0
+# full_screen = screen_mode
 
-#death message and some value reseting
+#value reseting
 def resetGame():
-    global x, state, st, space, h, explosion, song_index
-
-    fn.renderMessage2("YOU ARE FUCKIN DEAD!",42, red, screen_width //2, 200)
-    fn.renderMessage2("BETTER LUCK NEXT TIME..",24, red, screen_width //2, 250)
-    explosion.play(0)
-    fn.refreshStage()
-    pygame.time.wait(3000)
-
+    global x, state, st, space, h, song_index, gamePaused, counter, gameLevel
     del(st)
     del(space)
     space = fn.space(200, 1)
     space.generateSpace()
-    st = fn.Stage(500)
+    st = fn.Stage(gameMapSize)
     st.setBlockCoordinates()
     herostart = st.getfirstAlt()
-
     h = fn.Hero(herostart)
     fn.resetGameVals()
     x=0
     state = 0
+    gameLevel = 1
+    counter = 0
     song_index = 0
-
-def endGame():
-    global x, state, st, space, h, explosion, song_index
-
-    fn.mainLogo(150)
-    fn.renderMessage2("YOU'VE MADE IT!",32, yellow, screen_width //2, 250)
-    fn.renderMessage2("YOU HAVE ESCAPED TO HYPERSPACE AND TO FREEDOM!",24, red, screen_width //2, 280)
-    fn.renderMessage2("HOPE YOU HAD AS GREAT TIME PLAYING THE GAME AS I HAD MAKING IT! ",24, red, screen_width //2, 310)
-    fn.renderMessage2("SEE YOU AGAIN IN SOME OTHER ADVENTURE...",24, red, screen_width //2, 340)
-
-    fn.refreshStage()
-    pygame.time.wait(5000)
-
-    del(st)
-    del(space)
-    space = fn.space(200, 1)
-    space.generateSpace()
-    st = fn.Stage(500)
-    st.setBlockCoordinates()
-    herostart = st.getfirstAlt()
-
-    h = fn.Hero(herostart)
-    fn.resetGameVals()
-    x=0
-    state = 0
-    song_index = 0
+    gamePaused = 0
 
 
 if __name__ == "__main__":
-    while True:
+    
+    _quit = False
+    while not _quit:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT: sys.exit()
+            if event.type == pygame.QUIT: 
+                _quit = True
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                    if event.key==K_ESCAPE:
+                        if state == 1:
+                            if gamePaused == 0:
+                                gamePaused = 1
+                                game_music.fadeout(300)
+                            else:
+                                gamePaused = 0
+                                if sound_on == 1:
+                                    game_music.play(-1)
+
+
         
 
         # state machine begins......................
         if state == 0: #menu screen
             soundset = 0
+            screenSet = 0
+
             if intro_music_playing == 0:
                 if sound_on == 1:
+                    pygame.mixer.Sound.set_volume(intro_music, 0.7)
                     intro_music.play(-1)
                 elif sound_on == 0:
                     intro_music.stop()
@@ -120,7 +126,7 @@ if __name__ == "__main__":
             fn.menuScreen()
             ms = fn.getMenuSelection()
             if ms !=0:
-                if ms == 1:
+                if ms == 1: #start game
                     intro_music_playing = 0
                     if sound_on == 1: 
                         intro_music.fadeout(700)
@@ -131,57 +137,56 @@ if __name__ == "__main__":
 
         elif state == 1: #game rolling
 
-            if game_music_playing == 0:
-                if sound_on == 1:
-                    game_music.play(-1)
-                game_music_playing = 1
+            if gamePaused == 0:
+                if game_music_playing == 0:
+                    if sound_on == 1:
+                        pygame.mixer.Sound.set_volume(game_music, 0.7)
+                        game_music.play(-1)
+                    game_music_playing = 1
 
-            #check health
-            hero_health = h.getHeroHealth()
-            if hero_health == 0:
-                fn.saveHighScore()
-                state = 666
-                if sound_on == 1:
-                    game_music.fadeout(700)
-                game_music_playing = 0
+                #check health
+                hero_health = h.getHeroHealth()
+                if hero_health == 0:
+                    fn.saveHighScore()
+                    state = 666
+                    if sound_on == 1:
+                        game_music.fadeout(700)
+                    game_music_playing = 0
 
-
-            
-
-
-            space.roll_spaceFx()
-            st.renderStage()
-            h.drawHero()
-            h.handle_keys()
-            st.renderStats()
-            if x == 0:
-
-                #maybe this will be moved on functions.py...maybe...
-                fn.renderMessage2("WARNING!",32, yellow, screen_width //2, 200)
-                fn.renderMessage2("MYSTERIOUS ALIEN STRUCTURES KNOWN AS \"SPACE WALLS\"",24, red, screen_width //2, 230)
-                fn.renderMessage2("ARE FORMING IN YOUR SECTOR. DONT GET TRAPPED INSIDE! ",24, red, screen_width //2, 260)
-                fn.renderMessage2("FLY CAREFULLY THROUGH THE WALLS AND ESCAPE TO HYPERSPACE... ",24, red, screen_width //2, 290)
+                space.roll_spaceFx()
+                st.renderStage()
+                h.drawHero()
+                h.handle_keys()
+                st.renderStats()
+                if x == 0:
+                    fn.gameStory()
 
 
-            #check finish
-            distance = st.returnDistance()
-            if(distance <= 0):
-                fn.saveHighScore()
-                state = 667
-                if sound_on == 1:
-                    game_music.fadeout(700)
-                game_music_playing = 0
+                #check finish
+                distance = st.returnDistance()
+                if(distance <= 0):
+                    fn.saveHighScore()
+                    state = 667
+                    if sound_on == 1:
+                        game_music.fadeout(700)
+                    game_music_playing = 0
 
 
-            st.scrollStage() #comment this for degubing
-            fn.gameDiff()
-            fn.refreshStage()
+                st.scrollStage() #comment this for degubing
+                fn.gameDiff()
+                fn.refreshStage()
 
-            if x == 0:
-                pygame.time.wait(6000)
-                x = 1
+                if x == 0:
+                    sleep(6)
+                    x = 1
 
-            screen.fill(black)
+                screen.fill(black)
+
+
+            else : #pause screen
+                exit = fn.showPauseMenu()
+                if exit: 
+                    resetGame()
 
         elif state == 2: # quit game       
             pygame.quit()
@@ -193,7 +198,6 @@ if __name__ == "__main__":
             fn.refreshStage()
             screen.fill(black)
             m = fn.escapeCreds()
-            # print(ms)
             if m:
                 state = 0
 
@@ -208,15 +212,42 @@ if __name__ == "__main__":
                 intro_music_playing = 0
                 soundset = 1
     
-            fn.showSettings(sound_on)
+            fn.showSoundSettings(sound_on)
             fn.refreshStage()
             screen.fill(black)
             m = fn.escapeCreds()
             if m:
                 state = 0
-    
+
+        elif state == 5:
+            space.roll_spaceFx()
+            
+            if screenSet == 0:
+                if full_screen == 0:
+                    full_screen = 1
+                elif full_screen == 1:
+                    full_screen = 0
+                screenSet = 1
+
+            fn.showScreenSettings(full_screen)
+            fn.refreshStage()
+            screen.fill(black)
+            m = fn.escapeCreds()
+            if m:
+                pygame.display.toggle_fullscreen()
+                state = 0
+
         elif state == 666: # Failure Screen
+            fn.looseGame()
+            sleep(3)
             resetGame()   
 
         elif state == 667: # Failure Screen
-            endGame()          
+            fn.endGame()
+            sleep(5)
+            resetGame()        
+
+
+pygame.quit()
+
+# it was fun...
