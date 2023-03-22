@@ -13,3 +13,7 @@ in the include folder theres a json file called screen_settings where you can ch
 The music and sound fx are inside the according sound folder and you can replace the music by replacing these files
 
 in the zipped_exe folder you will find the game as a single .exe file plus the folders above
+
+
+![image](https://user-images.githubusercontent.com/13571118/226952236-a20925cc-5745-4ff3-beed-e3cb4c0e2f72.png)
+
